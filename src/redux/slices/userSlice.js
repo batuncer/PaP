@@ -1,97 +1,83 @@
-import { createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { dispatch } from "../store";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-// Başlangıç durumu (initial state)
-const initialState = {
-  user: null, // Giriş yapan kullanıcı
-  isLoading: true, // İlk yükleme durumu
-  error: null, // Hata durumu
-};
+const backend = "http://localhost:8080/api/users";
 
-export const slice = createSlice({
-  name: "auth",
-  initialState,
+export const loginUser = createAsyncThunk(
+  'user/login',
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post(`${backend}/login`, credentials, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+      localStorage.setItem('token', data.token);
+ 
+      return { token: data.token, user: data.name };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Login failed');
+    }
+  }
+);
+
+export const registerUser = createAsyncThunk(
+  'user/register',
+  async (userInfo, { rejectWithValue }) => {
+    try {
+      await axios.post(`${backend}/signup`, userInfo);
+      return 'Registration successful';
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Registration failed');
+    }
+  }
+);
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    token: localStorage.getItem('token') || null,
+    currentUser: null,
+    loading: false,
+    error: null,
+    isAuthenticated: !!localStorage.getItem('token'),
+  },
   reducers: {
-    startLoading(state) {
-      state.isLoading = true;
-      state.error = null;
+    logout: (state) => {
+      localStorage.removeItem('token');
+      state.token = null;
+      state.isAuthenticated = false;
     },
-    error(state, action) {
-      state.isLoading = false;
-      state.error = action.payload;
-    },
-    loginSuccess(state, action) {
-      state.user = action.payload; // Giriş yapan kullanıcıyı store'a kaydet
-      state.isLoading = false;
-      state.error = null;
-    },
-    loginFailure(state, action) {
-      state.isLoading = false;
-      state.error = action.payload;
-    },
-    logout(state) {
-      state.user = null; // Çıkış yapıldığında kullanıcıyı sıfırla
-      state.error = null;
-    },
-    setUser(state, action) {
-      state.user = action.payload; // Kullanıcı verisi güncelleme
-    },
-    setLoading(state, action) {
-      state.isLoading = action.payload; // Yükleme durumu
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload;
+        state.currentUser = { name: action.payload.user }; 
+        state.isAuthenticated = true;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const {
-  startLoading,
-  error,
-  loginSuccess,
-  loginFailure,
-  logout,
-  setUser,
-  setLoading,
-} = slice.actions;
-
-export default slice.reducer;
-
-// API'den kullanıcı verisi almak için
-export const getUserDetails = () => async (dispatch) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    dispatch(startLoading());
-    try {
-      const response = await axios.get("http://localhost:8080/api/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      dispatch(setUser(response.data));
-    } catch (err) {
-      dispatch(error("User verification failed"));
-    }
-  } else {
-    dispatch(setLoading(false));
-  }
-};
-
-// Giriş işlemi için
-export const loginUser = (username, password) => async () => {
-  try {
-    const response = await axios.post("http://localhost:8080/api/users/login", {
-      username,
-      password,
-    });
-    const token = response.data.token;
-    localStorage.setItem("token", token);
-    dispatch(loginSuccess({ username })); // Giriş yapan kullanıcıyı store'a kaydet
-    return true;
-  } catch (err) {
-    dispatch(loginFailure("Invalid credentials"));
-    return false;
-  }
-};
-
-// Çıkış işlemi için
-export const logoutUser = () => (dispatch) => {
-  localStorage.removeItem("token");
-  dispatch(logout());
-};
+export const { logout } = userSlice.actions;
+export default userSlice.reducer;

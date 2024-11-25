@@ -1,103 +1,73 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const postsBackend = "http://localhost:8080/api";
 
-const initialState = {
-  posts: [],
-  isLoading: false,
-  error: null,
-};
+// Fetch Posts işlemi
+export const fetchPosts = createAsyncThunk(
+  'posts/fetchPosts',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`${postsBackend}/posts`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch posts');
+    }
+  }
+);
 
-export const slice = createSlice({
-  name: "posts",
-  initialState,
-  reducers: {
-    startLoading(state) {
-      state.isLoading = true;
-      state.error = null;
-    },
-    error(state, action) {
-      state.isLoading = false;
-      state.error = action.payload;
-    },
-    successGetPost(state, action) {
-      state.posts = action.payload;
-      state.isLoading = false;
-    },
-    successCreatePost(state, action) {
-      state.posts.push(action.payload);
-      state.isLoading = false;
-    },
-    successUpdatePost(state, action) {
-      const index = state.posts.findIndex(
-        (post) => post.id === action.payload.id
-      );
-      if (index !== -1) {
-        state.posts[index] = action.payload;
-      }
-      state.isLoading = false;
-    },
-    successDeletePost(state, action) {
-      state.posts = state.posts.filter((post) => post.id !== action.payload);
-      state.isLoading = false;
-    },
+// Create Post işlemi
+export const createPost = createAsyncThunk(
+  'posts/createPost',
+  async (post, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post(`${postsBackend}/posts`, post, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to create post');
+    }
+  }
+);
+
+// Slice tanımlama
+const postSlice = createSlice({
+  name: 'posts',
+  initialState: {
+    posts: [],
+    loading: false,
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPosts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.posts = action.payload;
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        state.posts.push(action.payload); 
+      })
+      .addCase(createPost.rejected, (state, action) => {
+        state.error = action.error.message; 
+      });
   },
 });
 
-export default slice.reducer;
-export const {
-  startLoading,
-  error,
-  successGetPost,
-  successCreatePost,
-  successUpdatePost,
-  successDeletePost,
-} = slice.actions;
-
-// export function getPosts() {
-//     return async (dispatch) => {
-//         dispatch(startLoading());
-//         try {
-//             const response = await axios.get('http://localhost:8080/api/posts');
-//             dispatch(successGetPost(response.data));
-//         } catch (err) {
-//             dispatch(error(err.message));
-//         }
-//     };
-// }
-
-// export function createPost(newPost) {
-//     return async (dispatch) => {
-//         dispatch(startLoading());
-//         try {
-//             const response = await axios.post('http://localhost:8080/api/posts', newPost);
-//             dispatch(successCreatePost(response.data));
-//         } catch (err) {
-//             dispatch(error(err.message));
-//         }
-//     };
-// }
-
-// export function updatePost(updatedPost) {
-//     return async (dispatch) => {
-//         dispatch(startLoading());
-//         try {
-//             const response = await axios.put(`http://localhost:8080/api/posts/${updatedPost.id}`, updatedPost);
-//             dispatch(successUpdatePost(response.data));
-//         } catch (err) {
-//             dispatch(error(err.message));
-//         }
-//     };
-// }
-
-// export function deletePost(postId) {
-//     return async (dispatch) => {
-//         dispatch(startLoading());
-//         try {
-//             await axios.delete(`http://localhost:8080/api/posts/${postId}`);
-//             dispatch(successDeletePost(postId));
-//         } catch (err) {
-//             dispatch(error(err.message));
-//         }
-//     };
-// }
+export default postSlice.reducer;

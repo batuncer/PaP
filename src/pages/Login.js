@@ -1,30 +1,22 @@
-import React, { useState, Fragment, useContext } from "react";
-import { useDispatch } from "react-redux";
-import { AuthContext } from "../auth/AuthProvider";
+import React, { useState, Fragment } from "react";
+import { useDispatch, useAppSelector } from "../redux/store";
+import { loginUser } from "../redux/slices/userSlice";
+import { useNavigate } from 'react-router-dom';
+
+
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { loading, error } = useAppSelector((state) => state.user || {});
   const dispatch = useDispatch();
-  const { login, isLoading, error } = useContext(AuthContext)
+  const navigate = useNavigate();
 
-  const [credentials, setCredentials] = useState({
-    username: "",
-    password: "",
-  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { username, password } = credentials;
-    const success = await dispatch(login(username, password));
-    if (success) {
-      window.location.href = "/home"; // Login başarılı olursa yönlendirme
-    }
+  const handleSubmit = (e) => {
+      e.preventDefault();
+      dispatch(loginUser({ email, password }));
+      navigate("/home")
+      
   };
 
   return (
@@ -68,25 +60,24 @@ const Login = () => {
                   your account
                 </h2>
                 <form onSubmit={handleSubmit}>
+                  {error && <p className="text-danger mt-2">{error}</p>} 
                   <div className="form-group icon-input mb-3">
                     <i className="font-sm ti-email text-grey-500 pe-0"></i>
                     <input
                       type="text"
-                      name="username"
-                      value={credentials.username}
-                      onChange={handleChange}
-                      required
+                      name="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="style2-input ps-5 form-control text-grey-900 font-xsss fw-600"
-                      placeholder="Your Username"
+                      placeholder="Your Email"
                     />
                   </div>
                   <div className="form-group icon-input mb-1">
                     <input
                       type="password"
                       name="password"
-                      value={credentials.password}
-                      onChange={handleChange}
-                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="style2-input ps-5 form-control text-grey-900 font-xss ls-3"
                       placeholder="Password"
                     />
@@ -113,13 +104,14 @@ const Login = () => {
                       <button
                         type="submit"
                         className="form-control text-center style2-input text-white fw-600 bg-dark border-0 p-0"
-                        disabled={isLoading} // Disable button when loading
+                        disabled={loading}
                       >
                         Login
                       </button>
+                      {loading ? 'Logging in...' : 'Login'}
                     </div>
                     {error && (
-                      <p className="text-danger mt-2">{error}</p> // Show error message if any
+                      <p className="text-danger mt-2">{error}</p> 
                     )}
                     <h6 className="text-grey-500 font-xsss fw-500 mt-0 mb-0 lh-32">
                       Don't have account{" "}
@@ -127,37 +119,6 @@ const Login = () => {
                         Register
                       </a>
                     </h6>
-                  </div>
-                  <div className="col-sm-12 p-0 text-center mt-2">
-                    <h6 className="mb-0 d-inline-block bg-white fw-500 font-xsss text-grey-500 mb-3">
-                      Or, Sign in with your social account{" "}
-                    </h6>
-                    <div className="form-group mb-1">
-                      <a
-                        href="/google-auth"
-                        className="form-control text-left style2-input text-white fw-600 bg-facebook border-0 p-0 mb-2"
-                      >
-                        <img
-                          src="assets/images/icon-1.png"
-                          alt="icon"
-                          className="ms-2 w40 mb-1 me-5"
-                        />{" "}
-                        Sign in with Google
-                      </a>
-                    </div>
-                    <div className="form-group mb-1">
-                      <a
-                        href="/facebook-auth"
-                        className="form-control text-left style2-input text-white fw-600 bg-twiiter border-0 p-0"
-                      >
-                        <img
-                          src="assets/images/icon-3.png"
-                          alt="icon"
-                          className="ms-2 w40 mb-1 me-5"
-                        />{" "}
-                        Sign in with Facebook
-                      </a>
-                    </div>
                   </div>
                 </form>
               </div>
