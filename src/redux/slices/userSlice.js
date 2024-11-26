@@ -1,18 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from '../../utils/utils';
 
-const backend = "http://localhost:8080/api/users";
+
 
 export const loginUser = createAsyncThunk(
   'user/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(`${backend}/login`, credentials, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      const { data } = await axios.post("login", credentials);
+
       localStorage.setItem('token', data.token);
+  
  
       return { token: data.token, user: data.name };
     } catch (error) {
@@ -25,7 +23,7 @@ export const registerUser = createAsyncThunk(
   'user/register',
   async (userInfo, { rejectWithValue }) => {
     try {
-      await axios.post(`${backend}/signup`, userInfo);
+      await axios.post("/signup", userInfo);
       return 'Registration successful';
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Registration failed');
@@ -40,7 +38,7 @@ const userSlice = createSlice({
     currentUser: null,
     loading: false,
     error: null,
-    isAuthenticated: !!localStorage.getItem('token'),
+    isAuthenticated: !!localStorage.getItem('token')
   },
   reducers: {
     logout: (state) => {

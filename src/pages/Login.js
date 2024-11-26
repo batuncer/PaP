@@ -1,28 +1,29 @@
 import React, { useState, Fragment } from "react";
 import { useDispatch, useAppSelector } from "../redux/store";
-import { loginUser } from "../redux/slices/userSlice";
 import { useNavigate } from 'react-router-dom';
-
-
+import {useAuthContext} from "../auth/useAuthContext"
+import LoginGuard from "../auth/LoginGuard";
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { loading, error } = useAppSelector((state) => state.user || {});
+  const {login} = useAuthContext()
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
 
   const handleSubmit = (e) => {
       e.preventDefault();
-      dispatch(loginUser({ email, password }));
-      navigate("/home")
-      
+      login(email, password );
+    
   };
 
+
   return (
+    <LoginGuard>
     <Fragment>
       <div className="main-wrap">
-        <div className="nav-header bg-transparent shadow-none border-0">
+      <div className="nav-header bg-transparent shadow-none border-0">
           <div className="nav-top w-100">
             <a href="/">
               <i className="feather-zap text-success display1-size me-2 ms-0"></i>
@@ -30,16 +31,9 @@ const Login = () => {
                 Sociala.
               </span>
             </a>
-            <button className="nav-menu me-0 ms-auto"></button>
-            <a
-              href="/login"
-              className="header-btn d-none d-lg-block bg-dark fw-500 text-white font-xsss p-3 ms-auto w100 text-center lh-20 rounded-xl"
-            >
-              Login
-            </a>
             <a
               href="/register"
-              className="header-btn d-none d-lg-block bg-current fw-500 text-white font-xsss p-3 ms-2 w100 text-center lh-20 rounded-xl"
+              className="header-btn d-none d-lg-block bg-dark fw-500 text-white font-xsss p-3 ms-auto w100 text-center lh-20 rounded-xl"
             >
               Register
             </a>
@@ -108,7 +102,7 @@ const Login = () => {
                       >
                         Login
                       </button>
-                      {loading ? 'Logging in...' : 'Login'}
+                      {loading ? 'Logging in...' : ''}
                     </div>
                     {error && (
                       <p className="text-danger mt-2">{error}</p> 
@@ -127,6 +121,7 @@ const Login = () => {
         </div>
       </div>
     </Fragment>
+    </LoginGuard>
   );
 };
 

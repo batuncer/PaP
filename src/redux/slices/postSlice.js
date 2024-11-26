@@ -1,18 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const postsBackend = "http://localhost:8080/api";
+import axios from '../../utils/utils';
 
 // Fetch Posts işlemi
 export const fetchPosts = createAsyncThunk(
   'posts/fetchPosts',
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`${postsBackend}/posts`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      const { data } = await axios.get("/posts");
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to fetch posts');
@@ -25,7 +19,7 @@ export const createPost = createAsyncThunk(
   'posts/createPost',
   async (post, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(`${postsBackend}/posts`, post, {
+      const { data } = await axios.post("/posts", post, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           'Content-Type': 'application/json'

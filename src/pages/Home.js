@@ -6,31 +6,33 @@ import { useDispatch, useAppSelector } from "../redux/store";
 import CreatePost from "../components/Createpost";
 import Postview from "../components/Postview";
 import { Leftnav } from "../components/Leftnav";
-
+import Storyslider from "../components/Storyslider";
+import LoginGuard from "../auth/UserGuard";
 export default function Home() {
   const [user, setUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const { posts, error } = useAppSelector((state) => state.posts);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/users/me", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setUser(response.data);
-      } catch (err) {
-        console.log("Error", err);
-        setErrorMessage("Failed to fetch user details");
-      }
-    };
-    fetchUser();
-  }, []);
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const response = await axios.get("http://localhost:8080/api/users/me", {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //         },
+  //       });
+  //       setUser(response.data);
+  //     } catch (err) {
+  //       console.log("Error", err);
+  //       setErrorMessage("Failed to fetch user details");
+  //     }
+  //   };
+  //   fetchUser();
+  // }, []);
 
   return (
+    <LoginGuard>
     <Fragment>
       <Header />
       <Leftnav />
@@ -39,6 +41,7 @@ export default function Home() {
           <div className="middle-sidebar-left">
             <div className="row feed-body">
               <div className="col-xl-8 col-xxl-9 col-lg-8">
+                <Storyslider />
                 <CreatePost />
                 <Postview />
               </div>
@@ -51,5 +54,6 @@ export default function Home() {
       </div>
       <Appfooter />
     </Fragment>
+    </LoginGuard>
   );
 }

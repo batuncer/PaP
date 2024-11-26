@@ -10,6 +10,8 @@ const CreatePost = () => {
   const dispatch = useDispatch();
 
   const { currentUser } = useAppSelector((state) => state.user);
+  // const { user } = useAuthContext();
+
 
   const toggleOpen = useCallback(() => {
     setIsOpen((prevState) => !prevState);

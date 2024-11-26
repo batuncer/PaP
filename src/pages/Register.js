@@ -9,17 +9,19 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
   const { loading, error } = useAppSelector((state) => state.user || {});
   const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
       e.preventDefault();
-      dispatch(registerUser({ name, surname, username, email, password, country }));
+      dispatch(registerUser({ name, surname, username, email, password, country, city }));
   };
 
   return (
     <Fragment>
       <div className="main-wrap">
+        
         <div className="nav-header bg-transparent shadow-none border-0">
           <div className="nav-top w-100">
             <a href="/">
@@ -27,6 +29,12 @@ const Register = () => {
               <span className="d-inline-block fredoka-font ls-3 fw-600 text-current font-xxl logo-text mb-0">
                 Sociala.
               </span>
+            </a>
+            <a
+              href="/"
+              className="header-btn d-none d-lg-block bg-dark fw-500 text-white font-xsss p-3 ms-auto w100 text-center lh-20 rounded-xl"
+            >
+              Login
             </a>
           </div>
         </div>
@@ -89,6 +97,15 @@ const Register = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       className="style2-input ps-5 form-control text-grey-900 font-xss ls-3"
                       placeholder="Password"
+                    />
+                  </div>
+                  <div className="form-group icon-input mb-1">
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="style2-input ps-5 form-control text-grey-900 font-xss ls-3"
+                      placeholder="Your city"
                     />
                   </div>
                   <div className="form-group icon-input mb-1">

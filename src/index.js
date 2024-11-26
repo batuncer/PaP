@@ -8,8 +8,12 @@ import { Provider as ReduxProvider } from "react-redux";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Settings from "./pages/Settings";
+import Userpage from "./pages/Userpage";
+import { AuthProvider } from "./auth/jwt-context";
+
 const Root = () => {
   return (
+    <AuthProvider>
     <ReduxProvider store={store}>
       <BrowserRouter >
         <Routes>
@@ -17,10 +21,11 @@ const Root = () => {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/defaultsettings" element={<Settings />} />
-
+          <Route path="/userpage" element={<Userpage />} />
         </Routes>
       </BrowserRouter>
     </ReduxProvider>
+   </AuthProvider>
   );
 };
 
